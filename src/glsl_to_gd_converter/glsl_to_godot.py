@@ -2,6 +2,7 @@ import re, sys, os
 import argparse
 
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Convert GLSL shaders to Godot shader format."
@@ -35,6 +36,7 @@ def convert_glsl_to_godot(glsl_code, shader_type):
         r"\btexture2D\b": "texture",
         r"\btextureCube\b": "texture",
         r"\bvec4\s*\(": "vec4(",
+        r"\bgl_FragCoord\b": "FRAGCOORD",
     }
 
     for pattern, repl in replacements.items():
@@ -47,7 +49,13 @@ def convert_glsl_to_godot(glsl_code, shader_type):
     code = re.sub(r"precision\s+\w+\s+\w+;", "", code)
 
     # Remove 'in' and 'out' qualifiers (Godot uses 'varying')
-    code = re.sub(r"\b(in|out)\b\s+(\w+)\s+", r"varying \2 ", code)
+    code = re.sub(r"\b(in|out)\b\s+(\w+)\s+", r"\2 ", code)
+
+    match = re.findall(r'#include\s+"([^"]+)"', code)
+    if match:
+        # path = match.group(1)
+        # match.
+        print(match)
 
     # Add shader_type header if specified
     if shader_type is None:
@@ -58,7 +66,6 @@ def convert_glsl_to_godot(glsl_code, shader_type):
 
 
 def main():
-
     args = parse_args()
 
     infile = args.input
@@ -78,7 +85,7 @@ def main():
 
     with open(outfile, "w") as f:
         f.write(godot_code)
-
+ 
     print(f"✅ Converted {infile} → {outfile} (type={shader_type})")
 
 if __name__ == "__main__":
