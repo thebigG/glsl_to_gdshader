@@ -24,10 +24,22 @@ def parse_args():
     return args
 
 
+def convert_include_extensions(code):
+    # Replace: #include "foo/bar.glsl"
+    # With:   #include "foo/bar.gdshaderinc"
+    def repl(match):
+        path = match.group(1)
+        new_path = re.sub(r"\.glsl$", ".gdshaderinc", path)
+        return f'#include "{new_path}"'
+
+    return re.sub(r'#include\s+"([^"]+)"', repl, code)
+
 
 def convert_glsl_to_godot(glsl_code, shader_type):
     # Remove GLSL version line
     code = re.sub(r"#version\s+\d+\s*\n", "", glsl_code)
+
+    code = convert_include_extensions(code)
 
     # Replace GLSL builtins
     replacements = {
